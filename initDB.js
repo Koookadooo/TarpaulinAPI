@@ -20,22 +20,11 @@ async function hashPasswords(userData) {
   }
 }
 
-// Function to delete existing data
-async function clearTables() {
-  await User.destroy({ where: {}, truncate: true });
-  await Course.destroy({ where: {}, truncate: true });
-  await Assignment.destroy({ where: {}, truncate: true });
-  await Submission.destroy({ where: {}, truncate: true });
-}
-
 // Synchronize the database and populate it with initial data
 sequelize.sync({ force: true }).then(async function () {
   try {
     // Preprocess the user data to hash passwords
     await hashPasswords(userData);
-
-    // Clear existing data
-    await clearTables();
 
     // Insert new data into the database
     await User.bulkCreate(userData, { fields: UserClientFields });
