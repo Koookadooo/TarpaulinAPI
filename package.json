@@ -1,12 +1,11 @@
 {
-  "name": "template-assignment-3",
+  "name": "tarpaulin-api",
   "version": "1.1.0",
-  "description": "A small business review API",
+  "description": "A lightweight course management tool",
   "main": "server.js",
   "scripts": {
-    "test": "node tests/test.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "nodemon server.js",
     "initdb": "node initDB.js"
   },
   "repository": {
