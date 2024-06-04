@@ -1,0 +1,20 @@
+[
+  {
+    "courseId": 1,
+    "title": "Assignment 1",
+    "points": 100,
+    "due": "2024-07-01T23:59:59"
+  },
+  {
+    "courseId": 1,
+    "title": "Assignment 2",
+    "points": 100,
+    "due": "2024-08-01T23:59:59"
+  },
+  {
+    "courseId": 2,
+    "title": "Assignment 1",
+    "points": 100,
+    "due": "2024-09-01T23:59:59"
+  }
+]

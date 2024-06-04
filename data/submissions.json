@@ -1,0 +1,23 @@
+[
+  {
+    "assignmentId": 1,
+    "studentId": 3,
+    "timestamp": "2024-07-01T12:00:00",
+    "grade": null,
+    "file": "/path/to/submission1.pdf"
+  },
+  {
+    "assignmentId": 2,
+    "studentId": 3,
+    "timestamp": "2024-08-01T12:00:00",
+    "grade": null,
+    "file": "/path/to/submission2.pdf"
+  },
+  {
+    "assignmentId": 3,
+    "studentId": 3,
+    "timestamp": "2024-09-01T12:00:00",
+    "grade": null,
+    "file": "/path/to/submission3.pdf"
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "subject": "CS",
+    "number": "493",
+    "title": "Cloud Application Development",
+    "term": "sp22",
+    "instructorId": 2
+  },
+  {
+    "subject": "CS",
+    "number": "561",
+    "title": "AI and Machine Learning",
+    "term": "fa22",
+    "instructorId": 2
+  }
+]

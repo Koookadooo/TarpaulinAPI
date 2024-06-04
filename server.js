@@ -3,6 +3,7 @@ require('./models/associations');
 
 const express = require('express')
 const morgan = require('morgan')
+const sequelize = require('./lib/sequelize')
 const api = require('./api')
 const app = express()
 const port = process.env.PORT || 8000
@@ -25,6 +26,8 @@ app.use('*', function (err, req, res, next) {
   })
 })
 
-app.listen(port, function () {
-  console.log("== Server is running on port", port)
+sequelize.sync().then(function () {
+  app.listen(port, function () {
+      console.log("== Server is listening on port:", port)
+  })
 })

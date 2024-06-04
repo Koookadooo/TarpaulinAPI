@@ -1,0 +1,36 @@
+{
+  "name": "template-assignment-3",
+  "version": "1.1.0",
+  "description": "A small business review API",
+  "main": "server.js",
+  "scripts": {
+    "test": "node tests/test.js",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "initdb": "node initDB.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Koookadooo/TarpaulinAPI.git"
+  },
+  "author": "Martin <martaust@oregonstate.edu>, Neff <neffd@oregonstate.edu>, Foley <foleybenjamin@oregonstate.edu>, Anding <andingwesley@oregonstate.edu>",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/Koookadooo/TarpaulinAPI/issues"
+  },
+  "homepage": "https://github.com/Koookadooo/TarpaulinAPI#readme",
+  "dependencies": {
+    "axios": "^1.7.1",
+    "bcrypt": "^5.1.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jq": "^1.7.2",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "mysql2": "^2.3.3",
+    "sequelize": "^6.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.16"
+  }
+}
