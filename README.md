@@ -19,3 +19,19 @@ API Architecture
 ![API Architecture](./media/API_architecture.png)
 
 ## Setup
+1.  To start the Program you must first launch Docker Desktop
+    
+![alt text](./media/Docker%20Desktop.png)
+
+2.  If the docker has not been built yet run:
+```
+docker compose up --build
+```
+3.  If the Docker has been built run:
+```
+docker compose up
+```
+4.  If you want to run Curl commands you will need to start a new terminal
+
+
+
