@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
+const { ValidationError } = require('sequelize');
+const { Course, CourseClientFields } = require('../models/course');
+
+const requireAuth = require('../lib/auth');
+
 // Placeholder Route to ensure server is working
 router.get('/', (req, res) => {
   res.json({ message: 'Courses route placeholder' });
