@@ -5,9 +5,8 @@ const { ValidationError } = require('sequelize');
 const { Course, CourseClientFields } = require('../models/course');
 const { User, UserClientFields } = require('../models/user');
 
-const { requireAuth, generateAuthToken } = require('../lib/auth');
+const { requireAuth } = require('../lib/auth');
 
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const secret_key = process.env.JWT_SECRET;
 
@@ -52,7 +51,23 @@ router.get('/', async function (req, res) {
 
 router.post('/', async function (req, res, next) {
   try {
-    const { subject, number, title, term, instructorId } = req.body;
+    const { subject, number, term, instructorId } = req.body;
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      res.status(401).send({ Error: "Missing authorization header" });
+    }
+
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, secret_key);
+      if (!decoded.admin || decoded.instructor != instructorId ) {
+        return res.status(403).send({ Error: "Admin or instructor access required" });
+      }
+    }
+    catch (e) {
+      return res.status(401).send({ Error: "Invalid token" });
+    }
 
     const existingCourse = await Course.findOne({ where: { subject, number, term } });
     if (existingCourse) {
