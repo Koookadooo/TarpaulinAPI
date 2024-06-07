@@ -59,7 +59,7 @@ router.get('/users/:userId', requireAuth, async function (req, res, next) {
   } catch (err) {
     next(err);
   }
-}),
+});
 
 // Placeholder Route to ensure server is working
 router.get('/', (req, res) => {
