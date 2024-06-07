@@ -114,6 +114,20 @@ router.get('/:id/submissions', async function (req, res, next) {
   }
 });
 
+/*
+  *POST assignment submission.
+*/
+router.post('/:id/submissions', async function (req, res, next) {
+  const assignment = await Assignment.findByPk(req.params.id);
+  if (assignment) {
+    const submission = await assignment.createSubmission(req.body);
+    res.status(201).json(submission);
+  } else {
+    next();
+  }
+});
+
+
 
 
 
