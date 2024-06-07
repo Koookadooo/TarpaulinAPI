@@ -6,7 +6,9 @@ const { Course, CourseClientFields } = require('../models/course');
 
 const { requireAuth } = require('../lib/auth');
 
-// Return a list of courses
+
+
+// Fetch the list of all Courses
 
 router.get('/', async function (req, res) {
 
@@ -41,6 +43,8 @@ router.get('/', async function (req, res) {
   });
 });
 
+// Create a new Course
+
 router.post('/', requireAuth, async function (req, res, next) {
   try {
     const course = await Course.create(req.body, CourseClientFields);
@@ -56,6 +60,8 @@ router.post('/', requireAuth, async function (req, res, next) {
   }
 });
 
+// Fetch data about a specific Course
+
 router.get('/:id', async function (req, res, next) {
   const courseId = req.params.id;
   const course = await Course.findByPk(courseId);
@@ -67,6 +73,8 @@ router.get('/:id', async function (req, res, next) {
     next();
   }
 });
+
+// Update data for a specific Course
 
 router.patch('/:id', requireAuth, async function (req, res, next) {
   const courseId = req.params.id;
@@ -87,6 +95,8 @@ router.patch('/:id', requireAuth, async function (req, res, next) {
   }
 });
 
+// Remove a specific Course from the database
+
 router.delete('/:id', requireAuth, async function (req, res, next) {
   const courseId = req.params.id;
 
@@ -100,6 +110,30 @@ router.delete('/:id', requireAuth, async function (req, res, next) {
   else {
     next();
   }
+});
+
+// Fetch a list of the students enrolled in a course
+
+router.get('/:id/students', requireAuth, async function (req, res, next) {
+  res.json({ message: `GET /courses/${req.params.id}/students` });
+});
+
+// Update enrollment for a Course
+
+router.post('/:id/students', requireAuth, async function (req, res, next) {
+  res.json({ message: `POST /courses/${req.params.id}/students` });
+});
+
+// Fetch a CSV file containing list of the students enrolled in the Course
+
+router.get('/:id/roster', requireAuth, async function (req, res, next) {
+  res.json({ message: `GET /courses/${req.params.id}/roster` });
+});
+
+// Fetch a list of the Assignments for the Course
+
+router.get('/:id/assignments', requireAuth, async function (req, res, next) {
+  res.json({ message: `GET /courses/${req.params.id}/assignments` });
 });
 
 module.exports = router;
