@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
-const { requireAuth, generateAuthToken } = require('../lib/auth');
+const { requireAuth, generateAuthToken, requireRole } = require('../lib/auth');
 const { User, UserClientFields } = require('../models/user');
 const { ValidationError } = require('sequelize');
 
