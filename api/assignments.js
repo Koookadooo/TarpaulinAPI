@@ -101,6 +101,20 @@ router.delete('/:id', async function (req, res, next) {
   }
 });
 
+/*
+  *GET assignments by list of Submissions
+*/
+router.get('/:id/submissions', async function (req, res, next) {
+  const assignment = await Assignment.findByPk(req.params.id);
+  if (assignment) {
+    const submissions = await assignment.getSubmissions();
+    res.status(200).json(submissions);
+  } else {
+    next();
+  }
+});
+
+
 
 
 module.exports = router;
