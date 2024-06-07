@@ -3,8 +3,9 @@ const router = express.Router();
 
 const { ValidationError } = require('sequelize');
 const { Course, CourseClientFields } = require('../models/course');
+const { User, UserClientFields } = require('../models/user');
 
-const { requireAuth } = require('../lib/auth');
+const { requireAuth, generateAuthToken } = require('../lib/auth');
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -49,8 +50,15 @@ router.get('/', async function (req, res) {
 
 // Create a new Course
 
-router.post('/', requireAuth, async function (req, res, next) {
+router.post('/', async function (req, res, next) {
   try {
+    const { subject, number, title, term, instructorId } = req.body;
+
+    const existingCourse = await Course.findOne({ where: { subject, number, term } });
+    if (existingCourse) {
+      return res.status(400).send({ Error: "Course already exists" });
+    }
+
     const course = await Course.create(req.body, CourseClientFields);
     res.status(201).send({ id: course.id });
   }
