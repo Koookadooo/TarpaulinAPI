@@ -6,6 +6,10 @@ const { Course, CourseClientFields } = require('../models/course');
 
 const { requireAuth } = require('../lib/auth');
 
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const secret_key = process.env.JWT_SECRET;
+
 
 
 // Fetch the list of all Courses
