@@ -67,4 +67,40 @@ router.post('/', async function (req, res,next) {
   }
 });
 
+/*
+  *PUT update assignment.
+*/
+router.put('/:id', async function (req, res, next) {
+  try {
+    const assignment = await Assignment.findByPk(req.params.id);
+    if (assignment) {
+      await assignment.update(req.body, AssignmentClientFields);
+      res.status(200).json(assignment);
+    } else {
+      next();
+    }
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      res.status(400).json({ message: err.errors[0].message });
+    } else {
+      next(err);
+    }
+  }
+});
+
+/*
+  *DELETE delete assignment.
+*/
+router.delete('/:id', async function (req, res, next) {
+  const assignment = await Assignment.findByPk(req.params.id);
+  if (assignment) {
+    await assignment.destroy();
+    res.status(204).end();
+  } else {
+    next();
+  }
+});
+
+
+
 module.exports = router;
