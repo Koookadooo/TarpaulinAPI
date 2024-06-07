@@ -38,4 +38,16 @@ router.get('/', async function (req, res) {
     links: links
   });
 });
+
+/*
+  *GET assignments by id.
+*/
+router.get('/:id', async function (req, res, next) {
+  const assignment = await Assignment.findByPk(req.params.id);
+  if (assignment) {
+    res.status(200).json(assignment);
+  } else {
+    next();
+  }
+});
 module.exports = router;
