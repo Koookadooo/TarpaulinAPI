@@ -50,4 +50,21 @@ router.get('/:id', async function (req, res, next) {
     next();
   }
 });
+
+/*
+  *POST create assignment.
+*/
+router.post('/', async function (req, res,next) {
+  try {
+    const assignment = await Assignment.create(req.body, AssignmentClientFields);
+    res.status(201).json(assignment);
+  } catch (err) {
+    if (err instanceof ValidationError) {
+      res.status(400).json({ message: err.errors[0].message });
+    } else {
+      next(err);
+    }
+  }
+});
+
 module.exports = router;
