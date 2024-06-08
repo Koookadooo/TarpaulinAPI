@@ -92,25 +92,14 @@ router.get('/:id', async function (req, res, next) {
 
 // Update data for a specific Course
 
-router.patch('/:id', async function (req, res, next) {
+router.patch('/:id', requireAuth, async function (req, res, next) {
   try {
     const courseId = req.params.id;
     const course = await Course.findByPk(courseId);
 
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      res.status(401).send({ Error: "Missing authorization header" });
-    }
-
-    const token = authHeader.split(' ')[1];
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      if (decoded.role != "admin" && decoded.id != course.instructorId ) {
-        return res.status(403).send({ Error: "Admin or instructor access required" });
-      }
-    }
-    catch (e) {
-      return res.status(401).send({ Error: "Invalid token" });
+    const user = await User.findByPk(req.user);
+    if (user.role != "admin" && user.id != course.instructorId) {
+      return res.status(403).send({ Error: "Admin or course instructor access required" });
     }
 
     const result = await Course.update(req.body, {
@@ -137,24 +126,13 @@ router.patch('/:id', async function (req, res, next) {
 
 // Remove a specific Course from the database
 
-router.delete('/:id', async function (req, res, next) {
+router.delete('/:id', requireAuth, async function (req, res, next) {
   try {
     const courseId = req.params.id;
 
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(401).send({ Error: "Missing authorization header" });
-    }
-    
-    const token = authHeader.split(' ')[1];
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      if (decoded.role != "admin") {
-        return res.status(403).send({ Error: "Admin access required" });
-      }
-    }
-    catch (err) {
-      return res.status(401).send({ Error: "Invalid token" });
+    const user = await User.findByPk(req.user);
+    if (user.role != "admin") {
+      return res.status(403).send({ Error: "Admin access required" });
     }
 
     const result = await Course.destroy({ where: { id: courseId }});
