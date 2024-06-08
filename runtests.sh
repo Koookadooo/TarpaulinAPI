@@ -25,13 +25,13 @@ printf '\n'
 status 'POST /courses should return SUCCESS'
 curl -v -s -X POST \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer ' \
+    -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlhdCI6MTcxNzg2NzcxMCwiZXhwIjoxNzE3OTU0MTEwfQ.hhfI_DRjk2U20SBYvOGAW3ICYFPlhG4apLkxh5F1ISs' \
     -d '{
             "subject": "CS",
-            "number": "493",
-            "title": "Cloud Application Development",
-            "term": "sp22",
-            "instructorId": 123
+            "number": "444",
+            "title": "Operating Systems II",
+            "term": "sp24",
+            "instructorId": 2
         }' \
         http://localhost:8000/courses | json_pp
 printf '\n'

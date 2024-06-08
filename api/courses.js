@@ -49,26 +49,13 @@ router.get('/', async function (req, res) {
 
 // Create a new Course
 
-router.post('/', async function (req, res, next) {
+router.post('/', requireAuth, async function (req, res, next) {
   try {
     const { subject, number, term } = req.body;
 
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      res.status(401).send({ Error: "Missing authorization header" });
-    }
-
-    const token = authHeader.split(' ')[1];
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = decoded.sub;
-      console.log(`=== req.user.role: ${req.user.role} ===`);
-      if (req.user.role !== "admin" ) {
-        return res.status(403).send({ Error: "Admin access required" });
-      }
-    }
-    catch (e) {
-      return res.status(401).send({ Error: "Invalid token" });
+    const user = await User.findByPk(req.user);
+    if (user.role != "admin" ) {
+      return res.status(403).send({ Error: "Admin access required" });
     }
 
     const existingCourse = await Course.findOne({ where: { subject, number, term } });
