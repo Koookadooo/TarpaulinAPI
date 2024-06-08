@@ -1,5 +1,7 @@
 !/bin/bash
 
+baseurl="http://localhost:8000"
+
 check_response() {
     if [ "$1" -eq 200] || [ "$1" -eq 201 ]; then
         echo "Success: $2"
@@ -8,8 +10,8 @@ check_response() {
     fi
 }
 
-# Create a new user
-response=$(curl -s -w "%{http_code}" -X 'POST' \
+# Add a user
+response=$(curl -X 'POST' \
   'https://localhost:8000/users' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
@@ -20,18 +22,16 @@ response=$(curl -s -w "%{http_code}" -X 'POST' \
   "role": "student"
 }')
 
-check_response $response "Create a new user"
+check_response $response "Add a user"
 
 # Get the first user ID
-response=$(curl -s -w "%{http_code}" -X 'GET' \
-  'https://localhost:8000/users/1' \
-  -H 'accept: application/json')
+response=$(curl -s -o /dev/null -w "%{http_code}" $baseurl/users/1)
 
-check_response $response "Get the first user ID"
+check_response $response "Get a user"
 
 # Login a user
-response=$(curl -s -w "%{http_code}" -X 'POST' \
-  'https://editor.swagger.io/users/login' \
+response=$(curl -X 'POST' \
+  'https://localhost:8000/users/login' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
