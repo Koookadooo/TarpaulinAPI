@@ -51,7 +51,7 @@ router.get('/', async function (req, res) {
 
 router.post('/', async function (req, res, next) {
   try {
-    const { subject, number, term, instructorId } = req.body;
+    const { subject, number, term } = req.body;
 
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -61,8 +61,8 @@ router.post('/', async function (req, res, next) {
     const token = authHeader.split(' ')[1];
     try {
       const decoded = jwt.verify(token, secret_key);
-      if (!decoded.role == "admin" && decoded.id != instructorId ) {
-        return res.status(403).send({ Error: "Admin or instructor access required" });
+      if (!decoded.role == "admin" ) {
+        return res.status(403).send({ Error: "Admin access required" });
       }
     }
     catch (e) {
