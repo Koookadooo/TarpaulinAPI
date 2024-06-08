@@ -17,3 +17,7 @@ printf '\n'
 status 'GET course-by-id should return SUCCESS'
 curl -s http://localhost:8000/courses/2 | json_pp
 printf '\n'
+
+status 'GET course-by-id should return FAILURE -- Course does not exist'
+curl -s http://localhost:8000/courses/76 | json_pp
+printf '\n'

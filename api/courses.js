@@ -61,7 +61,7 @@ router.post('/', async function (req, res, next) {
     const token = authHeader.split(' ')[1];
     try {
       const decoded = jwt.verify(token, secret_key);
-      if (!decoded.admin || decoded.instructor != instructorId ) {
+      if (!decoded.role == "admin" && decoded.id != instructorId ) {
         return res.status(403).send({ Error: "Admin or instructor access required" });
       }
     }
@@ -82,7 +82,7 @@ router.post('/', async function (req, res, next) {
       res.status(400).send({ error: e.message });
     }
     else {
-      throw e
+      throw e;
     }
   }
 });
@@ -104,38 +104,80 @@ router.get('/:id', async function (req, res, next) {
 // Update data for a specific Course
 
 router.patch('/:id', requireAuth, async function (req, res, next) {
-  const courseId = req.params.id;
-  const course = await Course.findByPk(courseId);
+  try {
+    const courseId = req.params.id;
+    const course = await Course.findByPk(courseId);
 
-  if (req.user != course.instructorId) {
-    res.status(403).json({ "Error": "Unauthorized" });
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      res.status(401).send({ Error: "Missing authorization header" });
+    }
+
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, secret_key);
+      if (!decoded.role == "admin" && decoded.id != course.instructorId ) {
+        return res.status(403).send({ Error: "Admin or instructor access required" });
+      }
+    }
+    catch (e) {
+      return res.status(401).send({ Error: "Invalid token" });
+    }
+
+    const result = await Course.update(req.body, {
+      where: { id: courseId },
+      fields: CourseClientFields
+    });
+
+    if (result[0] > 0) {
+      res.status(204).send({ message: "Course successfully updated" });
+    }
+    else {
+      next();
+    }
   }
-  const result = await Course.update(req.body, {
-    where: { id: courseId },
-    fields: CourseClientFields
-  });
-  if (result[0] > 0) {
-    res.status(204).send();
-  }
-  else {
-    next();
+  catch (e) {
+    if (e instanceof ValidationError) {
+      res.status(400).send({ error: e.message });
+    }
+    else {
+      throw e;
+    }
   }
 });
 
 // Remove a specific Course from the database
 
 router.delete('/:id', requireAuth, async function (req, res, next) {
-  const courseId = req.params.id;
+  try {
+    const courseId = req.params.id;
 
-  if (req.user.role != "admin") {
-    res.status(403).json({ "Error": "Unauthorized" });
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).send({ Error: "Missing authorization header" });
+    }
+    
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, secret_key);
+      if (!decoded.role == "admin") {
+        return res.status(403).send({ Error: "Admin access required" });
+      }
+    }
+    catch (err) {
+      return res.status(401).send({ Error: "Invalid token" });
+    }
+
+    const result = await Course.destroy({ where: { id: courseId }});
+    if (result > 0) {
+      return res.status(204).send({ message: "Course successfully deleted" });
+    }
+    else {
+      next();
+    }
   }
-  const result = await Course.destroy({ where: { id: courseId }});
-  if (result > 0) {
-    res.status(204).send();
-  }
-  else {
-    next();
+  catch (e) {
+    res.status(400).send({ Error: e.message });
   }
 });
 
