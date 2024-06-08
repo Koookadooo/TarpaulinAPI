@@ -61,7 +61,7 @@ router.post('/', async function (req, res, next) {
     const token = authHeader.split(' ')[1];
     try {
       const decoded = jwt.verify(token, secret_key);
-      if (!decoded.role == "admin" ) {
+      if (decoded.role != "admin" ) {
         return res.status(403).send({ Error: "Admin access required" });
       }
     }
@@ -116,7 +116,7 @@ router.patch('/:id', async function (req, res, next) {
     const token = authHeader.split(' ')[1];
     try {
       const decoded = jwt.verify(token, secret_key);
-      if (!decoded.role == "admin" && decoded.id != course.instructorId ) {
+      if (decoded.role != "admin" && decoded.id != course.instructorId ) {
         return res.status(403).send({ Error: "Admin or instructor access required" });
       }
     }
@@ -160,7 +160,7 @@ router.delete('/:id', async function (req, res, next) {
     const token = authHeader.split(' ')[1];
     try {
       const decoded = jwt.verify(token, secret_key);
-      if (!decoded.role == "admin") {
+      if (decoded.role != "admin") {
         return res.status(403).send({ Error: "Admin access required" });
       }
     }
