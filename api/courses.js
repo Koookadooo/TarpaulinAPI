@@ -5,7 +5,7 @@ const { ValidationError } = require('sequelize');
 const { Course, CourseClientFields } = require('../models/course');
 const { User, UserClientFields } = require('../models/user');
 
-const { requireAuth } = require('../lib/auth');
+const { requireAuth, requireRole } = require('../lib/auth');
 
 const jwt = require('jsonwebtoken');
 const secret_key = process.env.JWT_SECRET;
@@ -60,8 +60,10 @@ router.post('/', async function (req, res, next) {
 
     const token = authHeader.split(' ')[1];
     try {
-      const decoded = jwt.verify(token, secret_key);
-      if (decoded.role != "admin" ) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded.sub;
+      console.log(`=== req.user.role: ${req.user.role} ===`);
+      if (req.user.role !== "admin" ) {
         return res.status(403).send({ Error: "Admin access required" });
       }
     }
@@ -115,7 +117,7 @@ router.patch('/:id', async function (req, res, next) {
 
     const token = authHeader.split(' ')[1];
     try {
-      const decoded = jwt.verify(token, secret_key);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       if (decoded.role != "admin" && decoded.id != course.instructorId ) {
         return res.status(403).send({ Error: "Admin or instructor access required" });
       }
@@ -159,7 +161,7 @@ router.delete('/:id', async function (req, res, next) {
     
     const token = authHeader.split(' ')[1];
     try {
-      const decoded = jwt.verify(token, secret_key);
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       if (decoded.role != "admin") {
         return res.status(403).send({ Error: "Admin access required" });
       }
