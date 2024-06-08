@@ -7,7 +7,8 @@ const Course = sequelize.define('course', {
   number: { type: DataTypes.STRING, allowNull: false },
   title: { type: DataTypes.STRING, allowNull: false },
   term: { type: DataTypes.STRING, allowNull: false },
-  instructorId: { type: DataTypes.INTEGER, allowNull: false }
+  instructorId: { type: DataTypes.INTEGER, allowNull: false },
+  studentIds: { type: DataTypes.JSON, allowNull: false, defaultValue: [] }
 });
 
 exports.Course = Course;
@@ -17,5 +18,6 @@ exports.CourseClientFields = [
   'number',
   'title',
   'term',
-  'instructorId'
+  'instructorId',
+  'studentIds'
 ];
