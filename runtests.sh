@@ -26,6 +26,10 @@ check_failure_response() {
 ######  Testing Course Endpoints  ######
 ########################################
 
+########################################
+#  Command to run: bash ./runtests.sh  #
+########################################
+
 ADMIN_AUTH_TOKEN="placeholder"
 INSTRUCTOR_AUTH_TOKEN_1="placeholder"
 INSTRUCTOR_AUTH_TOKEN_2="placeholder"
@@ -73,7 +77,7 @@ echo "$content" | json_pp
 printf '\n'
 
 status 'POST /courses should return Failure -- Course already exists'
-curl -s -X POST \
+response=$(curl -s -w "%{http_code}\n" -X POST \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer '"$ADMIN_AUTH_TOKEN"'' \
     -d '{
@@ -83,11 +87,16 @@ curl -s -X POST \
             "term": "sp22",
             "instructorId": 2
         }' \
-        http://localhost:8000/courses | json_pp
+        http://localhost:8000/courses)
+
+http_code=$(tail -c 4 <<< "$response")
+check_failure_response $http_code
+content=${response::-3}
+echo "$content" | json_pp
 printf '\n'
 
 status 'POST /courses should return Failure -- Unauthorized'
-curl -s -X POST \
+response=$(curl -s -w "%{http_code}\n" -X POST \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer '"$INSTRUCTOR_AUTH_TOKEN_1"'' \
     -d '{
@@ -97,11 +106,16 @@ curl -s -X POST \
             "term": "fa24",
             "instructorId": 1
         }' \
-        http://localhost:8000/courses | json_pp
+        http://localhost:8000/courses)
+
+http_code=$(tail -c 4 <<< "$response")
+check_failure_response $http_code
+content=${response::-3}
+echo "$content" | json_pp    
 printf '\n'
 
 status 'POST /courses should return Failure -- Unauthorized'
-curl -s -X POST \
+response=$(curl -s -w "%{http_code}\n" -X POST \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer '"$STUDENT_AUTH_TOKEN"'' \
     -d '{
@@ -111,11 +125,16 @@ curl -s -X POST \
             "term": "wi24",
             "instructorId": 1
         }' \
-        http://localhost:8000/courses | json_pp
+        http://localhost:8000/courses)
+
+http_code=$(tail -c 4 <<< "$response")
+check_failure_response $http_code
+content=${response::-3}
+echo "$content" | json_pp
 printf '\n'
 
 status 'PATCH /courses/{id} should return SUCCESS'
-curl -s -X PATCH \
+response=$(curl -s -w "%{http_code}\n" -X PATCH \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer '"$ADMIN_AUTH_TOKEN"'' \
     -d '{
@@ -125,11 +144,16 @@ curl -s -X PATCH \
             "term": "sp23",
             "instructorId": 2
         }' \
-        http://localhost:8000/courses | json_pp
+        http://localhost:8000/courses)
+
+http_code=$(tail -c 4 <<< "$response")
+check_successful_response $http_code
+content=${response::-3}
+echo "$content" | json_pp
 printf '\n'
 
 status 'PATCH /courses/{id} should return FAILURE -- Missing Fields'
-curl -s -X PATCH \
+response=$(curl -s -w "%{http_code}\n" -X PATCH \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer '"$ADMIN_AUTH_TOKEN"'' \
     -d '{
@@ -137,11 +161,16 @@ curl -s -X PATCH \
             "number": "444",
             "instructorId": 2
         }' \
-        http://localhost:8000/courses | json_pp
+        http://localhost:8000/courses)
+
+http_code=$(tail -c 4 <<< "$response")
+check_failure_response $http_code
+content=${response::-3}
+echo "$content" | json_pp
 printf '\n'
 
 status 'PATCH /courses/{id} should return FAILURE -- Unauthorized'
-curl -s -X PATCH \
+response=$(curl -s -w "%{http_code}\n" -X PATCH \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer '"$STUDENT_AUTH_TOKEN"'' \
     -d '{
@@ -151,11 +180,16 @@ curl -s -X PATCH \
             "term": "fa23",
             "instructorId": 1
         }' \
-        http://localhost:8000/courses | json_pp
+        http://localhost:8000/courses)
+
+http_code=$(tail -c 4 <<< "$response")
+check_failure_response $http_code
+content=${response::-3}
+echo "$content" | json_pp
 printf '\n'
 
 status 'PATCH /courses/{id} should return FAILURE -- Unauthorized'
-curl -s -X PATCH \
+response=$(curl -s -w "%{http_code}\n" -X PATCH \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer '"$INSTRUCTOR_AUTH_TOKEN_2"'' \
     -d '{
@@ -165,5 +199,10 @@ curl -s -X PATCH \
             "term": "fa23",
             "instructorId": 1
         }' \
-        http://localhost:8000/courses | json_pp
+        http://localhost:8000/courses)
+
+http_code=$(tail -c 4 <<< "$response")
+check_failure_response $http_code
+content=${response::-3}
+echo "$content" | json_pp
 printf '\n'
