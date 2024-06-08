@@ -3,12 +3,9 @@ const router = express.Router();
 
 const { ValidationError } = require('sequelize');
 const { Course, CourseClientFields } = require('../models/course');
-const { User, UserClientFields } = require('../models/user');
+const { User } = require('../models/user');
 
-const { requireAuth, requireRole } = require('../lib/auth');
-
-const jwt = require('jsonwebtoken');
-const secret_key = process.env.JWT_SECRET;
+const { requireAuth } = require('../lib/auth');
 
 
 
