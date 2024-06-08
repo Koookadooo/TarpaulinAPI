@@ -103,7 +103,7 @@ router.get('/:id', async function (req, res, next) {
 
 // Update data for a specific Course
 
-router.patch('/:id', requireAuth, async function (req, res, next) {
+router.patch('/:id', async function (req, res, next) {
   try {
     const courseId = req.params.id;
     const course = await Course.findByPk(courseId);
@@ -148,7 +148,7 @@ router.patch('/:id', requireAuth, async function (req, res, next) {
 
 // Remove a specific Course from the database
 
-router.delete('/:id', requireAuth, async function (req, res, next) {
+router.delete('/:id', async function (req, res, next) {
   try {
     const courseId = req.params.id;
 
