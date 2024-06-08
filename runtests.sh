@@ -76,7 +76,7 @@ content=${response::-3}
 echo "$content" | json_pp
 printf '\n'
 
-status 'POST /courses should return Failure -- Course already exists'
+status 'POST /courses should return FAILURE -- Course already exists'
 response=$(curl -s -w "%{http_code}\n" -X POST \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer '"$ADMIN_AUTH_TOKEN"'' \
@@ -95,7 +95,7 @@ content=${response::-3}
 echo "$content" | json_pp
 printf '\n'
 
-status 'POST /courses should return Failure -- Unauthorized'
+status 'POST /courses should return FAILURE -- Unauthorized'
 response=$(curl -s -w "%{http_code}\n" -X POST \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer '"$INSTRUCTOR_AUTH_TOKEN_1"'' \
@@ -114,7 +114,7 @@ content=${response::-3}
 echo "$content" | json_pp    
 printf '\n'
 
-status 'POST /courses should return Failure -- Unauthorized'
+status 'POST /courses should return FAILURE -- Unauthorized'
 response=$(curl -s -w "%{http_code}\n" -X POST \
     -H 'Content-Type: application/json' \
     -H 'Authorization: Bearer '"$STUDENT_AUTH_TOKEN"'' \
