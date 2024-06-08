@@ -25,7 +25,7 @@ printf '\n'
 status 'POST /courses should return SUCCESS'
 curl -v -s -X POST \
     -H 'Content-Type: application/json' \
-    -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlhdCI6MTcxNzg2NzcxMCwiZXhwIjoxNzE3OTU0MTEwfQ.hhfI_DRjk2U20SBYvOGAW3ICYFPlhG4apLkxh5F1ISs' \
+    -H 'Authorization: Bearer ' \
     -d '{
             "subject": "CS",
             "number": "444",
