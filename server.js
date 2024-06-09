@@ -3,10 +3,17 @@ require('./models/associations');
 
 const express = require('express')
 const morgan = require('morgan')
+const redis = require('redis');
 const sequelize = require('./lib/sequelize')
 const api = require('./api')
+
 const app = express()
 const port = process.env.PORT || 8000
+
+const redisHost = process.env.REDIS_HOST;
+const redisPort = 8000;
+
+const redisClient = redis.createClient();
 
 app.use(morgan('dev'))
 app.use(express.json())
@@ -27,7 +34,10 @@ app.use('*', function (err, req, res, next) {
 })
 
 sequelize.sync().then(function () {
-  app.listen(port, function () {
+  redisClient.connect().then(function () {
+    app.listen(port, function () {
       console.log("== Server is listening on port:", port)
+      console.log(`=== Redis server listening ===`)
+    })
   })
 })

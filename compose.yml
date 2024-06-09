@@ -33,3 +33,7 @@ services:
       - db
       - db-init
     restart: on-failure
+
+  rate-limiting:
+    image: redis
+    restart: on-failure
