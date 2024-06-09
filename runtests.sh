@@ -32,6 +32,7 @@ test_status() {
 
 section 'Testing User Endpoint'
 
+# Test to add a user
 test_status 'Add a user'
 response=$(curl -s -w "\n%{http_code}" -X 'POST' \
   "${baseurl}/users" \
@@ -47,6 +48,7 @@ status_code=$(echo "$response" | tail -n1)
 echo "$response" | head -n -1 | jq .
 check_response $status_code 201 "Add a user"
 
+# Test to login with new user
 test_status 'POST student login to get JWT token'
 STUDENT_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
     -H 'Content-Type: application/json' \
@@ -63,6 +65,7 @@ if [ "$STUDENT_TOKEN" = "null" ]; then
 fi
 check_response $status_code 200 "POST student login to get JWT token"
 
+# Test to login with admin user
 test_status 'POST admin login to get JWT token'
 ADMIN_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
     -H 'Content-Type: application/json' \
@@ -79,6 +82,7 @@ if [ "$ADMIN_TOKEN" = "null" ]; then
 fi
 check_response $status_code 200 "POST admin login to get JWT token"
 
+# Test to get a user
 test_status 'Get a user'
 response=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $STUDENT_TOKEN" $baseurl/users/4)
 status_code=$(echo "$response" | tail -n1)
@@ -91,6 +95,7 @@ check_response $status_code 200 "Get a user"
 
 section 'Testing Course Endpoints'
 
+# Test to get all courses
 test_status 'GET all courses should return SUCCESS'
 response=$(curl -s -w "\n%{http_code}" ${baseurl}/courses)
 status_code=$(echo "$response" | tail -n1)
@@ -98,6 +103,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 200 "GET all courses should return SUCCESS"
 printf '\n'
 
+# Test to get course by id
 test_status 'GET course-by-id should return SUCCESS'
 response=$(curl -s -w "\n%{http_code}" ${baseurl}/courses/2)
 status_code=$(echo "$response" | tail -n1)
@@ -105,6 +111,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 200 "GET course-by-id should return SUCCESS"
 printf '\n'
 
+# Test to get course by id
 test_status 'GET course-by-id should return FAILURE -- Course does not exist'
 response=$(curl -s -w "\n%{http_code}" ${baseurl}/courses/76)
 status_code=$(echo "$response" | tail -n1)
@@ -112,6 +119,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 404 "GET course-by-id should return FAILURE -- Course does not exist"
 printf '\n'
 
+# Test to make a course
 test_status 'POST /courses should return SUCCESS for admin'
 response=$(curl -s -w "\n%{http_code}" -X POST \
     -H 'Content-Type: application/json' \
@@ -130,6 +138,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 201 "POST /courses should return SUCCESS for admin"
 printf '\n'
 
+# Test to make a course
 test_status 'POST /courses should return FAILURE for student'
 response=$(curl -s -w "\n%{http_code}" -X POST \
     -H 'Content-Type: application/json' \
@@ -147,6 +156,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 403 "POST /courses should return FAILURE for student"
 printf '\n'
 
+# Test to delete a course
 test_status 'DELETE course should return SUCCESS for admin'
 response=$(curl -s -w "\n%{http_code}" -X DELETE \
     -H "Authorization: Bearer $ADMIN_TOKEN" \
@@ -155,6 +165,7 @@ status_code=$(echo "$response" | tail -n1)
 check_response $status_code 204 "DELETE course should return SUCCESS for admin"
 printf '\n'
 
+# Test to enroll students to a course
 test_status 'POST enroll students to a course should return SUCCESS for admin'
 response=$(curl -s -w "\n%{http_code}" -X POST \
     -H 'Content-Type: application/json' \
@@ -169,6 +180,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 200 "POST enroll students to a course should return SUCCESS for admin"
 printf '\n'
 
+# Test to enroll students to a course
 test_status 'POST enroll students to a course should return FAILURE for student'
 response=$(curl -s -w "\n%{http_code}" -X POST \
     -H 'Content-Type: application/json' \
@@ -183,6 +195,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 403 "POST enroll students to a course should return FAILURE for student"
 printf '\n'
 
+# Test to get students in a course
 test_status 'GET students in a course should return SUCCESS for admin'
 response=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $ADMIN_TOKEN" ${baseurl}/courses/1/students)
 status_code=$(echo "$response" | tail -n1)
@@ -190,6 +203,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 200 "GET students in a course should return SUCCESS for admin"
 printf '\n'
 
+# Test to get students in a course
 test_status 'GET students in a course should return FAILURE for student'
 response=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $STUDENT_TOKEN" ${baseurl}/courses/1/students)
 status_code=$(echo "$response" | tail -n1)
@@ -197,6 +211,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 403 "GET students in a course should return FAILURE for student"
 printf '\n'
 
+# Test to unenroll students from a course
 test_status 'POST unenroll students from a course should return SUCCESS for admin'
 response=$(curl -s -w "\n%{http_code}" -X POST \
     -H 'Content-Type: application/json' \
@@ -211,6 +226,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 200 "POST unenroll students from a course should return SUCCESS for admin"
 printf '\n'
 
+# Test to unenroll students from a course
 test_status 'POST unenroll students from a course should return FAILURE for student'
 response=$(curl -s -w "\n%{http_code}" -X POST \
     -H 'Content-Type: application/json' \
@@ -225,6 +241,7 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 403 "POST unenroll students from a course should return FAILURE for student"
 printf '\n'
 
+# Test to get roster CSV for a course
 test_status 'GET roster CSV for a course should return SUCCESS for admin'
 response=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $ADMIN_TOKEN" ${baseurl}/courses/1/roster -o roster.csv)
 status_code=$(echo "$response" | tail -n1)
@@ -232,6 +249,7 @@ check_response $status_code 200 "GET roster CSV for a course should return SUCCE
 printf "CSV saved to roster.csv\n"
 printf '\n'
 
+# Test to get assignments
 test_status 'GET assignments in a course should return SUCCESS'
 response=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $ADMIN_TOKEN" ${baseurl}/courses/1/assignments)
 status_code=$(echo "$response" | tail -n1)
