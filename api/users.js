@@ -10,35 +10,42 @@ const { ValidationError } = require('sequelize');
 /*
  * Route to create a new user.
  */
-router.post('/', async function (req, res, next) {
+router.post('/', async (req, res) => {
   try {
-    const { role } = req.body;
+    const { name, email, password, admin } = req.body;
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).send({ error: 'Email already in use' });
+    }
 
-    // Check if user is trying to create an instructor or Admin role
-    if ((role === 'instructor' || role === 'admin') && req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+    if (admin) {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(401).send({ error: 'Missing authorization header' });
+      }
+      const token = authHeader.split(' ')[1];
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (!decoded.admin) {
+          return res.status(403).send({ error: 'Admin access required' });
+        }
+      } catch (err) {
+        return res.status(401).send({ error: 'Invalid token' });
+      }
     }
-    
-    const passwordHash = await bcrypt.hash(req.body.password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
-      ...req.body,
-      password: passwordHash
-    }, { fields: UserClientFields });
-    res.status(201).json({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role
+      name,
+      email,
+      password: hashedPassword,
+      admin: admin || false
     });
-  } catch (err) {
-    if (err instanceof ValidationError) {
-      res.status(400).json({ error: 'Validation error', details: err.errors });
-    } else {
-      next(err);
-    }
+
+    res.status(201).send({ id: user.id });
+  } catch (e) {
+    res.status(400).send({ error: e.message });
   }
 });
-
 
 /*
  * Route to login a user.

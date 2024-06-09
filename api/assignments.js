@@ -10,7 +10,6 @@ const multer = require('multer');
 const crypto = require('crypto');
 const {Enrollment} = require('../models/enrollment');
 
-
 const fileType = {
   'application/pdf': 'pdf'
 };
@@ -109,9 +108,6 @@ router.post('/', requireAuth, requireRole('admin','instructor'), async function 
   }
 });
 
-
-
-
 /*
   *PUT update assignment.
 */
@@ -209,6 +205,34 @@ router.get('/:id/submissions',requireAuth,requireRole("admin","instructor"), asy
 /*
   *POST assignment submission.
 */
+router.post('/:id/submissions', requireAuth, requireRole('student'), upload.single('file'), async function (req, res, next) {
+  try {
+    const assignmentId = req.params.id;
+    const studentId = req.user.id;
+    const { timestamp } = req.body;
+    const file = req.file;
 
+    const assignment = await Assignment.findByPk(assignmentId);
+    if (!assignment) {
+      return res.status(404).json({ error: 'Assignment not found' });
+    }
+
+    const enrollment = await Enrollment.findOne({ where: { courseId: assignment.courseId, studentId: studentId } });
+    if (!enrollment) {
+      return res.status(403).json({ error: 'Forbidden: Not enrolled in the course' });
+    }
+
+    const submission = await Submission.create({
+      assignmentId,
+      studentId,
+      timestamp,
+      file: file.path
+    }, { fields: SubmissionClientFields });
+
+    res.status(201).json({ message: "Submission created successfully", submission });
+  } catch (err) {
+    next(err);
+  }
+});
 
 module.exports = router;
