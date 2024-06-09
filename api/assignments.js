@@ -4,8 +4,32 @@ const {requireAuth, requireRole} = require('../lib/auth');
 const {Course} = require('../models/course');
 const {User} = require('../models/user');
 const { Assignment,AssignmentClientFields } = require('../models/assignment');
-const { Submission } = require('../models/submission');
+const { Submission,SubmissionClientFields } = require('../models/submission');
 const {ValidationError} = require('sequelize');
+const multer = require('multer');
+const crypto = require('crypto');
+const {Enrollment} = require('../models/enrollment');
+
+
+const fileType = {
+  'application/pdf': 'pdf'
+};
+
+const storage = multer.diskStorage({
+  destination: `${__dirname}/uploads`,
+  filename: (req, file, callback) => {
+    const filename = crypto.pseudoRandomBytes(16).toString('hex');
+    const extension = fileType[file.mimetype];
+    callback(null, `${filename}.${extension}`);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, callback) => {
+    callback(null, !!fileType[file.mimetype]);
+  }
+});
 
 /* 
   *GET assignments listing.
@@ -185,25 +209,6 @@ router.get('/:id/submissions',requireAuth,requireRole("admin","instructor"), asy
 /*
   *POST assignment submission.
 */
-router.post('/:id/submissions', requireAuth,requireRole("student"), async function (req, res, next) {
-  const {title, points, due, courseId} = req.body;
-  const course = await Course.findByPk(courseId);
-  const user = await User.findByPk(req.user.id);
-
-  if (user.id !== course.studentIds) {
-    return res.status(403).send({ error: "Forbidden: Student access required" });
-  }
-  const assignment = await Assignment.findByPk(req.params.id);
-  if (assignment) {
-    const submission = await assignment.createSubmission(req.body);
-    res.status(201).json(submission);
-  } else {
-    next();
-  }
-});
-
-
-
 
 
 module.exports = router;
