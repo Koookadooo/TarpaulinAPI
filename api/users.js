@@ -12,6 +12,13 @@ const { ValidationError } = require('sequelize');
  */
 router.post('/', async function (req, res, next) {
   try {
+    const { role } = req.body;
+
+    // Check if user is trying to create an instructor or Admin role
+    if ((role === 'instructor' || role === 'admin') && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+    }
+    
     const passwordHash = await bcrypt.hash(req.body.password, 10);
     const user = await User.create({
       ...req.body,
