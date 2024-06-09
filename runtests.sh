@@ -7,10 +7,10 @@ passed_tests=0
 check_response() {
     ((expected_tests++))
     if [ "$1" -eq "$2" ]; then
-        echo "Success: $3"
+        echo -e "\033[32m SUCCESS:\033[0m $3"
         ((passed_tests++))
     else
-        echo "Failure: $3"
+        echo -e "\033[31m FAILURE:\033[0m $3"
     fi
 }
 

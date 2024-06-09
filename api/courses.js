@@ -147,7 +147,7 @@ router.delete('/:id', requireAuth, requireRole('admin'), async function (req, re
 
 // Fetch a list of the students enrolled in a course
 
-router.get('/:id/students', requireAuth, requireRole('admin', 'instrcutor'), async function (req, res, next) {
+router.get('/:id/students', requireAuth, requireRole('admin', 'instructor'), async function (req, res, next) {
   try {
     const courseId = req.params.id;
     const course = await Course.findByPk(courseId);
