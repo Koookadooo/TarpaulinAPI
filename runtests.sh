@@ -82,6 +82,41 @@ if [ "$ADMIN_TOKEN" = "null" ]; then
 fi
 check_response $status_code 200 "POST admin login to get JWT token"
 
+# Test to add a user that is an admin
+test_status 'Add a user that is an admin'
+response=$(curl -s -w "\n%{http_code}" -X 'POST' \
+  "${baseurl}/users" \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+    -d '{
+    "name": "Agent Smith",
+    "email": "smith@example.com",
+    "password": "hunter2",
+    "role": "admin"
+}')
+status_code=$(echo "$response" | tail -n1)
+echo "$response" | head -n -1 | jq .
+check_response $status_code 201 "Add a user that is an admin"
+
+# Test to add a user that is an instructor
+test_status 'Add a user that is an instructor'
+response=$(curl -s -w "\n%{http_code}" -X 'POST' \
+  "${baseurl}/users" \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+    -d '{
+    "name": "Agent Sam",
+    "email": "sam@example.com",
+    "password": "hunter2",
+    "role": "instructor"
+}')
+status_code=$(echo "$response" | tail -n1)
+echo "$response" | head -n -1 | jq .
+check_response $status_code 201 "Add a user that is an instructor"
+
+
 # Test to get a user
 test_status 'Get a user'
 response=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $STUDENT_TOKEN" $baseurl/users/4)
