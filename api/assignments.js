@@ -4,6 +4,7 @@ const {requireAuth, requireRole} = require('../lib/auth');
 const {Course} = require('../models/course');
 const {User} = require('../models/user');
 const { Assignment,AssignmentClientFields } = require('../models/assignment');
+const { Submission } = require('../models/submission');
 const {ValidationError} = require('sequelize');
 
 /* 
@@ -138,7 +139,7 @@ router.delete('/:id', requireAuth,requireRole("admin","instructor"), async funct
 });
 
 /*
-  *GET assignments by list of Submissions
+  *GET assignments list of Submissions
 */
 router.get('/:id/submissions',requireAuth,requireRole("admin","instructor"), async function (req, res, next) {
     const{title, points, due, courseId} = req.body;
@@ -147,27 +148,50 @@ router.get('/:id/submissions',requireAuth,requireRole("admin","instructor"), asy
 
     if (user.role !== "admin" && user.id !== course.instructorId) {
       return res.status(403).send({ error: "Forbidden: Admin or instructor access required" });
-    }
-
-  const assignment = await Assignment.findByPk(req.params.id);
-  if (assignment) {
-    const submissions = await assignment.getSubmissions();
-    res.status(200).json(submissions);
-  } else {
-    next();
+    }else{
+      let page = parseInt(req.query.page) || 1
+      page = page < 1 ? 1 : page
+      const numPerPage = 10
+      const offset = (page - 1) * numPerPage
+    
+      const result = await Submission.findAndCountAll({
+        limit: numPerPage,
+        offset: offset
+      });
+    
+      const lastPage = Math.ceil(result.count / numPerPage)
+      const links = {}
+      if (page < lastPage) {
+        links.nextPage = `/submissions?page=${page + 1}`
+        links.lastPage = `/submissions?page=${lastPage}`
+      }
+      if (page > 1) {
+        links.prevPage = `/submissions?page=${page - 1}`
+        links.firstPage = '/submissions?page=1'
+      }
+    
+      res.status(200).json({
+        submissions: result.rows,
+        pageNumber: page,
+        totalPages: lastPage,
+        pageSize: numPerPage,
+        totalCount: result.count,
+        links: links
+      
+    });
   }
-});
+  });
 
 /*
   *POST assignment submission.
 */
-router.post('/:id/submissions', requireAuth,requireRole("admin","instructor"), async function (req, res, next) {
+router.post('/:id/submissions', requireAuth,requireRole("student"), async function (req, res, next) {
   const {title, points, due, courseId} = req.body;
   const course = await Course.findByPk(courseId);
   const user = await User.findByPk(req.user.id);
 
-  if (user.role !== "admin" && user.id !== course.instructorId) {
-    return res.status(403).send({ error: "Forbidden: Admin or instructor access required" });
+  if (user.id !== course.studentIds) {
+    return res.status(403).send({ error: "Forbidden: Student access required" });
   }
   const assignment = await Assignment.findByPk(req.params.id);
   if (assignment) {
