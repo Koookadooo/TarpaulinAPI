@@ -140,7 +140,15 @@ router.delete('/:id', requireAuth,requireRole("admin","instructor"), async funct
 /*
   *GET assignments by list of Submissions
 */
-router.get('/:id/submissions', async function (req, res, next) {
+router.get('/:id/submissions',requireAuth,requireRole("admin","instructor"), async function (req, res, next) {
+    const{title, points, due, courseId} = req.body;
+    const course = await Course.findByPk(courseId);
+    const user = await User.findByPk(req.user.id);
+
+    if (user.role !== "admin" && user.id !== course.instructorId) {
+      return res.status(403).send({ error: "Forbidden: Admin or instructor access required" });
+    }
+
   const assignment = await Assignment.findByPk(req.params.id);
   if (assignment) {
     const submissions = await assignment.getSubmissions();
@@ -153,7 +161,14 @@ router.get('/:id/submissions', async function (req, res, next) {
 /*
   *POST assignment submission.
 */
-router.post('/:id/submissions', async function (req, res, next) {
+router.post('/:id/submissions', requireAuth,requireRole("admin","instructor"), async function (req, res, next) {
+  const {title, points, due, courseId} = req.body;
+  const course = await Course.findByPk(courseId);
+  const user = await User.findByPk(req.user.id);
+
+  if (user.role !== "admin" && user.id !== course.instructorId) {
+    return res.status(403).send({ error: "Forbidden: Admin or instructor access required" });
+  }
   const assignment = await Assignment.findByPk(req.params.id);
   if (assignment) {
     const submission = await assignment.createSubmission(req.body);
