@@ -90,8 +90,16 @@ router.post('/', requireAuth, requireRole('admin','instructor'), async function 
 /*
   *PUT update assignment.
 */
-router.put('/:id', async function (req, res, next) {
+router.patch('/:id', requireAuth,requireRole("admin","instructor"), async function (req, res, next) {
   try {
+    const { title, points, due, courseId } = req.body;
+    const course = await Course.findByPk(courseId);
+    const user = await User.findByPk(req.user.id);
+
+    if (user.role !== "admin" && user.id !== course.instructorId) {
+      return res.status(403).send({ error: "Forbidden: Admin or instructor access required" });
+    }
+
     const assignment = await Assignment.findByPk(req.params.id);
     if (assignment) {
       await assignment.update(req.body, AssignmentClientFields);
