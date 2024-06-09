@@ -3,11 +3,10 @@ const router = express.Router();
 
 const { ValidationError } = require('sequelize');
 const { Course, CourseClientFields } = require('../models/course');
+const { Assignment } = require('../models/assignment');
 const { User } = require('../models/user');
-
-const { requireAuth } = require('../lib/auth');
-
-
+const { Parser } = require('json2csv');
+const { requireAuth, requireRole } = require('../lib/auth');
 
 // Fetch the list of all Courses
 
@@ -35,6 +34,7 @@ router.get('/', async function (req, res) {
   }
 
   res.status(200).json({
+    message: "SUCCESS",
     courses: result.rows,
     pageNumber: page,
     totalPages: lastPage,
@@ -46,26 +46,26 @@ router.get('/', async function (req, res) {
 
 // Create a new Course
 
-router.post('/', requireAuth, async function (req, res, next) {
+router.post('/', requireAuth, requireRole('admin'), async function (req, res, next) {
   try {
     const { subject, number, term } = req.body;
 
-    const user = await User.findByPk(req.user);
+    const user = await User.findByPk(req.user.id);
     if (user.role != "admin" ) {
-      return res.status(403).send({ Error: "Admin access required" });
+      return res.status(403).send({ error: "Forbidden: Admin access required" });
     }
 
     const existingCourse = await Course.findOne({ where: { subject, number, term } });
     if (existingCourse) {
-      return res.status(400).send({ Error: "Course already exists" });
+      return res.status(400).send({ error: "FAILURE: Course already exists" });
     }
 
     const course = await Course.create(req.body, CourseClientFields);
-    res.status(201).send({ id: course.id });
+    res.status(201).send({ message: "SUCCESS: Course created", id: course.id });
   }
   catch (e) {
     if (e instanceof ValidationError) {
-      res.status(400).send({ error: e.message });
+      res.status(400).send({ error: "FAILURE: " + e.message });
     }
     else {
       throw e;
@@ -80,23 +80,23 @@ router.get('/:id', async function (req, res, next) {
   const course = await Course.findByPk(courseId);
 
   if (course) {
-    res.status(200).send(course);
+    res.status(200).send({ message: "SUCCESS: Course found", course });
   }
   else {
-    next();
+    res.status(404).send({ error: "FAILURE: Course not found" });
   }
 });
 
 // Update data for a specific Course
 
-router.patch('/:id', requireAuth, async function (req, res, next) {
+router.patch('/:id', requireAuth, requireRole('admin', 'instrcutor'), async function (req, res, next) {
   try {
     const courseId = req.params.id;
     const course = await Course.findByPk(courseId);
 
-    const user = await User.findByPk(req.user);
+    const user = await User.findByPk(req.user.id);
     if (user.role != "admin" && user.id != course.instructorId) {
-      return res.status(403).send({ Error: "Admin or course instructor access required" });
+      return res.status(403).send({ error: "Forbidden: Admin or course instructor access required" });
     }
 
     const result = await Course.update(req.body, {
@@ -105,15 +105,15 @@ router.patch('/:id', requireAuth, async function (req, res, next) {
     });
 
     if (result[0] > 0) {
-      res.status(204).send({ message: "Course successfully updated" });
+      res.status(204).send({ message: "SUCCESS: Course successfully updated" });
     }
     else {
-      next();
+      res.status(404).send({ error: "FAILURE: Course not found" });
     }
   }
   catch (e) {
     if (e instanceof ValidationError) {
-      res.status(400).send({ error: e.message });
+      res.status(400).send({ error: "FAILURE: " + e.message });
     }
     else {
       throw e;
@@ -123,50 +123,145 @@ router.patch('/:id', requireAuth, async function (req, res, next) {
 
 // Remove a specific Course from the database
 
-router.delete('/:id', requireAuth, async function (req, res, next) {
+router.delete('/:id', requireAuth, requireRole('admin'), async function (req, res, next) {
   try {
     const courseId = req.params.id;
 
-    const user = await User.findByPk(req.user);
+    const user = await User.findByPk(req.user.id);
     if (user.role != "admin") {
-      return res.status(403).send({ Error: "Admin access required" });
+      return res.status(403).send({ error: "Forbidden: Admin access required" });
     }
 
     const result = await Course.destroy({ where: { id: courseId }});
     if (result > 0) {
-      return res.status(204).send({ message: "Course successfully deleted" });
+      res.status(204).send({ message: "SUCCESS: Course successfully deleted" });
     }
     else {
-      next();
+      res.status(404).send({ error: "FAILURE: Course not found" });
     }
   }
   catch (e) {
-    res.status(400).send({ Error: e.message });
+    res.status(400).send({ error: "FAILURE: " + e.message });
   }
 });
 
 // Fetch a list of the students enrolled in a course
 
-router.get('/:id/students', requireAuth, async function (req, res, next) {
-  res.json({ message: `GET /courses/${req.params.id}/students` });
+router.get('/:id/students', requireAuth, requireRole('admin', 'instrcutor'), async function (req, res, next) {
+  try {
+    const courseId = req.params.id;
+    const course = await Course.findByPk(courseId);
+
+    if (!course) {
+      return res.status(404).json({ error: 'FAILURE: Course not found' });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (user.role !== 'admin' && user.id !== course.instructorId) {
+      return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+    }
+
+    const students = await course.getUsers({ attributes: ['id', 'name', 'email'], where: { role: 'student' } });
+    res.status(200).json({ message: "SUCCESS: Students found", students: students.map(student => student.name) });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Update enrollment for a Course
 
-router.post('/:id/students', requireAuth, async function (req, res, next) {
-  res.json({ message: `POST /courses/${req.params.id}/students` });
+router.post('/:id/students', requireAuth, requireRole('admin', 'instructor'), async function (req, res, next) {
+  try {
+    const courseId = req.params.id;
+    const { add, remove } = req.body;
+    const course = await Course.findByPk(courseId);
+
+    if (!course) {
+      return res.status(404).json({ error: 'FAILURE: Course not found' });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (user.role !== 'admin' && user.id !== course.instructorId) {
+      return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+    }
+
+    // Add students to the course
+    if (add && add.length > 0) {
+      const studentsToAdd = await User.findAll({ where: { id: add, role: 'student' } });
+      await course.addUsers(studentsToAdd);
+    }
+
+    // Remove students from the course
+    if (remove && remove.length > 0) {
+      const studentsToRemove = await User.findAll({ where: { id: remove, role: 'student' } });
+      await course.removeUsers(studentsToRemove);
+    }
+
+    res.status(200).json({ message: 'SUCCESS: Enrollment updated successfully' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Fetch a CSV file containing list of the students enrolled in the Course
 
-router.get('/:id/roster', requireAuth, async function (req, res, next) {
-  res.json({ message: `GET /courses/${req.params.id}/roster` });
+router.get('/:id/roster', requireAuth, requireRole('admin', 'instructor'), async function (req, res, next) {
+  try {
+    const courseId = req.params.id;
+    const course = await Course.findByPk(courseId);
+
+    // Handle case where course is not found
+    if (!course) {
+      console.log(`Course not found: courseId=${courseId}`);
+      return res.status(404).json({ error: 'FAILURE: Course not found' });
+    }
+
+    const user = await User.findByPk(req.user.id);
+
+    // Check if the user is the instructor of the course or admin
+    if (user.role !== 'admin' && user.id !== course.instructorId) {
+      console.log(`Permission denied: userId=${user.id}, role=${user.role}, courseId=${courseId}`);
+      return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+    }
+
+    
+    const students = await course.getUsers({ attributes: ['id', 'name', 'email'], where: { role: 'student' } });
+    const fields = ['id', 'name', 'email'];
+    const opts = { fields };
+    const parser = new Parser(opts);
+    const csv = parser.parse(students);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment(`course_${courseId}_roster.csv`);
+    res.send(csv);
+  } catch (err) {
+    console.error(`Error processing request: ${err.message}`);
+    next(err);
+  }
 });
 
 // Fetch a list of the Assignments for the Course
 
-router.get('/:id/assignments', requireAuth, async function (req, res, next) {
-  res.json({ message: `GET /courses/${req.params.id}/assignments` });
+router.get('/:id/assignments', requireAuth, requireRole('admin', 'instructor'), async function (req, res, next) {
+  try {
+    const courseId = req.params.id;
+    const course = await Course.findByPk(courseId);
+
+    if (!course) {
+      return res.status(404).json({ error: 'FAILURE: Course not found' });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (user.role !== 'admin' && user.id !== course.instructorId) {
+      return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+    }
+
+    // Fetch the assignments for the course
+    const assignments = await Assignment.findAll({ where: { courseId } });
+    res.status(200).json({ message: "SUCCESS: Assignments found", assignments: assignments.map(assignment => assignment.id) });
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = router;

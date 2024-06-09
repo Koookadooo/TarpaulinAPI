@@ -2,6 +2,7 @@ const { User } = require('./user');
 const { Course } = require('./course');
 const { Assignment } = require('./assignment');
 const { Submission } = require('./submission');
+const { Enrollment } = require('./enrollment');
 
 // User and Course (Instructor)
 User.hasMany(Course, { foreignKey: { allowNull: false, name: 'instructorId' } });
@@ -18,3 +19,7 @@ Assignment.belongsTo(Course, { foreignKey: 'courseId' });
 // Assignment and Submission
 Assignment.hasMany(Submission, { foreignKey: { allowNull: false, name: 'assignmentId' } });
 Submission.belongsTo(Assignment, { foreignKey: 'assignmentId' });
+
+// Course and User (Students)
+Course.belongsToMany(User, { through: Enrollment, foreignKey: 'courseId', otherKey: 'studentId' });
+User.belongsToMany(Course, { through: Enrollment, foreignKey: 'studentId', otherKey: 'courseId' });

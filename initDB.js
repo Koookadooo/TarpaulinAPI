@@ -4,15 +4,15 @@ const { User, UserClientFields } = require('./models/user');
 const { Course, CourseClientFields } = require('./models/course');
 const { Assignment, AssignmentClientFields } = require('./models/assignment');
 const { Submission, SubmissionClientFields } = require('./models/submission');
+const { Enrollment } = require('./models/enrollment');
 require('./models/associations');
 
-// Load the initial data
 const userData = require('./data/users.json');
 const courseData = require('./data/courses.json');
 const assignmentData = require('./data/assignments.json');
 const submissionData = require('./data/submissions.json');
+const enrollmentData = require('./data/enrollments.json');
 
-// Function to hash user passwords
 async function hashPasswords(userData) {
   for (const user of userData) {
     const salt = await bcrypt.genSalt(8);
@@ -20,17 +20,15 @@ async function hashPasswords(userData) {
   }
 }
 
-// Synchronize the database and populate it with initial data
 sequelize.sync({ force: true }).then(async function () {
   try {
-    // Preprocess the user data to hash passwords
     await hashPasswords(userData);
 
-    // Insert new data into the database
     await User.bulkCreate(userData, { fields: UserClientFields });
     await Course.bulkCreate(courseData, { fields: CourseClientFields });
     await Assignment.bulkCreate(assignmentData, { fields: AssignmentClientFields });
     await Submission.bulkCreate(submissionData, { fields: SubmissionClientFields });
+    await Enrollment.bulkCreate(enrollmentData);
 
     console.log("Database initialized successfully");
   } catch (error) {
