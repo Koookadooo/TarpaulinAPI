@@ -119,7 +119,15 @@ router.patch('/:id', requireAuth,requireRole("admin","instructor"), async functi
 /*
   *DELETE delete assignment.
 */
-router.delete('/:id', async function (req, res, next) {
+router.delete('/:id', requireAuth,requireRole("admin","instructor"), async function (req, res, next) {
+  const {title, points, due, courseId} = req.body;
+  const course = await Course.findByPk(courseId);
+  const user = await User.findByPk(req.user.id);
+  
+  if (user.role !== "admin" && user.id !== course.instructorId) {
+    return res.status(403).send({ error: "Forbidden: Admin or instructor access required" });
+  }
+
   const assignment = await Assignment.findByPk(req.params.id);
   if (assignment) {
     await assignment.destroy();
