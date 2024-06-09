@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-
 const { ValidationError } = require('sequelize');
 const { Course, CourseClientFields } = require('../models/course');
 const { Assignment } = require('../models/assignment');
+const { Enrollment } = require('../models/enrollment');
 const { User } = require('../models/user');
 const { Parser } = require('json2csv');
 const { requireAuth, requireRole } = require('../lib/auth');
@@ -161,9 +161,18 @@ router.get('/:id/students', requireAuth, requireRole('admin', 'instructor'), asy
       return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
     }
 
-    const students = await course.getUsers({ attributes: ['id', 'name', 'email'], where: { role: 'student' } });
-    res.status(200).json({ message: "SUCCESS: Students found", students: students.map(student => student.name) });
+    const enrollments = await Enrollment.findAll({
+      where: { courseId },
+      include: {
+        model: User,
+        attributes: ['id', 'name', 'email'],
+        where: { role: 'student' }
+      }
+    });
+    
+    res.status(200).json({ message: "SUCCESS: Students found", students: enrollments.map(enrollment => enrollment.user) });
   } catch (err) {
+    console.error("Error fetching students:", err);
     next(err);
   }
 });
@@ -185,16 +194,22 @@ router.post('/:id/students', requireAuth, requireRole('admin', 'instructor'), as
       return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
     }
 
-    // Add students to the course
     if (add && add.length > 0) {
-      const studentsToAdd = await User.findAll({ where: { id: add, role: 'student' } });
-      await course.addUsers(studentsToAdd);
+      for (const studentId of add) {
+        const student = await User.findOne({ where: { id: studentId, role: 'student' } });
+        if (student) {
+          await Enrollment.findOrCreate({ where: { courseId, studentId: student.id } });
+        }
+      }
     }
-
-    // Remove students from the course
+    
     if (remove && remove.length > 0) {
-      const studentsToRemove = await User.findAll({ where: { id: remove, role: 'student' } });
-      await course.removeUsers(studentsToRemove);
+      await Enrollment.destroy({
+        where: {
+          courseId,
+          studentId: remove
+        }
+      });
     }
 
     res.status(200).json({ message: 'SUCCESS: Enrollment updated successfully' });
@@ -202,6 +217,8 @@ router.post('/:id/students', requireAuth, requireRole('admin', 'instructor'), as
     next(err);
   }
 });
+
+module.exports = router;
 
 // Fetch a CSV file containing list of the students enrolled in the Course
 
@@ -224,8 +241,8 @@ router.get('/:id/roster', requireAuth, requireRole('admin', 'instructor'), async
       return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
     }
 
-    
-    const students = await course.getUsers({ attributes: ['id', 'name', 'email'], where: { role: 'student' } });
+    const enrollments = await Enrollment.findAll({ where: { courseId }, include: { model: User, attributes: ['id', 'name', 'email'] } });
+    const students = enrollments.map(enrollment => enrollment.user);
     const fields = ['id', 'name', 'email'];
     const opts = { fields };
     const parser = new Parser(opts);

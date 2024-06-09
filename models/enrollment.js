@@ -1,12 +1,14 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../lib/sequelize');
+const { User } = require('./user');
+const { Course } = require('./course');
 
 const Enrollment = sequelize.define('enrollment', {
   courseId: {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'courses',
+      model: Course,
       key: 'id'
     },
     primaryKey: true
@@ -15,7 +17,7 @@ const Enrollment = sequelize.define('enrollment', {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: 'users',
+      model: User,
       key: 'id'
     },
     primaryKey: true

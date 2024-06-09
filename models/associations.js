@@ -20,6 +20,14 @@ Assignment.belongsTo(Course, { foreignKey: 'courseId' });
 Assignment.hasMany(Submission, { foreignKey: { allowNull: false, name: 'assignmentId' } });
 Submission.belongsTo(Assignment, { foreignKey: 'assignmentId' });
 
+// User and Enrollment
+User.hasMany(Enrollment, { foreignKey: 'studentId' });
+Enrollment.belongsTo(User, { foreignKey: 'studentId' });
+
+// Course and Enrollment
+Course.hasMany(Enrollment, { foreignKey: 'courseId' });
+Enrollment.belongsTo(Course, { foreignKey: 'courseId' });
+
 // Course and User (Students)
 Course.belongsToMany(User, { through: Enrollment, foreignKey: 'courseId', otherKey: 'studentId' });
 User.belongsToMany(Course, { through: Enrollment, foreignKey: 'studentId', otherKey: 'courseId' });
