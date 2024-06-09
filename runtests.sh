@@ -194,6 +194,7 @@ response=$(curl -s -w "\n%{http_code}" -X POST \
         ${baseurl}/courses)
 status_code=$(echo "$response" | tail -n1)
 echo "$response" | head -n -1 | jq .
+echo "$response" | strip_last_line | jq .
 check_response $status_code 400 "POST /courses should return failure -- Course already exists"
 printf '\n'
 
@@ -211,6 +212,7 @@ response=$(curl -s -w "\n%{http_code}" -X POST \
         }' \
         ${baseurl}/courses)
 status_code=$(echo "$response" | tail -n1)
+echo "$response" | strip_last_line | jq .
 echo "$response" | strip_last_line | jq .
 check_response $status_code 403 "POST /courses should return FAILURE for student"
 printf '\n'
@@ -231,6 +233,7 @@ response=$(curl -s -w "\n%{http_code}" -X PATCH \
 status_code=$(echo "$response" | tail -n1)
 course_id=$(echo "$response" | head -n -1 | jq -r '.id')
 echo "$response" | head -n -1 | jq .
+echo "$response" | strip_last_line | jq .
 check_response $status_code 204 "PATCH /courses should return SUCCESS for admin"
 printf '\n'
 
@@ -250,6 +253,7 @@ response=$(curl -s -w "\n%{http_code}" -X PATCH \
 status_code=$(echo "$response" | tail -n1)
 course_id=$(echo "$response" | head -n -1 | jq -r '.id')
 echo "$response" | head -n -1 | jq .
+echo "$response" | strip_last_line | jq .
 check_response $status_code 403 "PATCH /courses should return FAILURE for student"
 printf '\n'
 
@@ -259,6 +263,7 @@ response=$(curl -s -w "\n%{http_code}" -X DELETE \
     -H "Authorization: Bearer $STUDENT_TOKEN" \
     ${baseurl}/courses/1)
 status_code=$(echo "$response" | tail -n1)
+echo "$response" | strip_last_line | jq .
 check_response $status_code 403 "DELETE course should return FAILURE for student"
 printf '\n'
 
@@ -268,6 +273,7 @@ response=$(curl -s -w "\n%{http_code}" -X DELETE \
     -H "Authorization: Bearer $ADMIN_TOKEN" \
     ${baseurl}/courses/3)
 status_code=$(echo "$response" | tail -n1)
+echo "$response" | strip_last_line | jq .
 check_response $status_code 204 "DELETE course should return SUCCESS for admin"
 printf '\n'
 
