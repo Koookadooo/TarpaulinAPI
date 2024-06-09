@@ -57,40 +57,15 @@ router.get('/:id', async function (req, res, next) {
 /*
   *POST create assignment.
 */
-// router.post('/',requireAuth,requireRole('admin'), async function (req, res,next) {
-//   try {
-//     const user = req.user;
-//     if(user.role != 'admin'){
-//       return res.status(403).send({ error: "Forbidden: Admin access required" }); 
-//     }
-
-//     const existingCourse = await Course.findByPk(req.body.assignmentId);
-//     if(existingCourse){
-//       return res.status(400).send({ error: "FAILURE: Assignment already exists" });
-//     }
-
-//     const assignment = await Assignment.create(req.body, AssignmentClientFields);
-//     res.status(201).json(assignment); 
-//   }catch (err) {
-//     if (err instanceof ValidationError) {
-//       res.status(400).json({ message: err.errors[0].message });
-//     } else {
-//       next(err);
-//     }
-//   }
-// });
-
 router.post('/', requireAuth, requireRole('admin','instructor'), async function (req, res, next) {
   try {
-    const courseId = req.params.id;
-    const { title, points, due } = req.body;
+    const { title, points, due, courseId} = req.body;
     const course = await Course.findByPk(courseId);
     const user = await User.findByPk(req.user.id);
 
     if (user.role !== "admin" && user.id !== course.instructorId) {
-      return res.status(403).send({ error: "Forbidden: Admin access required" });
+      return res.status(403).send({ error: "Forbidden: Admin or instructor access required" });
     }
-
     const existingAssignment = await Assignment.findOne({ where: {title, points, due } });
     if (existingAssignment) {
       return res.status(400).send({ error: "FAILURE: Assignment already exists" });
