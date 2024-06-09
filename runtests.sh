@@ -139,6 +139,24 @@ check_response $status_code 201 "POST /courses should return SUCCESS for admin"
 printf '\n'
 
 # Test to make a course
+test_status 'POST /courses should return FAILURE -- Course already exists'
+response=$(curl -s -w "\n%{http_code}" -X POST \
+    -H 'Content-Type: application/json' \
+    -H "Authorization: Bearer $ADMIN_TOKEN" \
+    -d '{
+            "subject": "CS",
+            "number": "499",
+            "title": "Virtual Reality",
+            "term": "sp24",
+            "instructorId": 2
+        }' \
+        ${baseurl}/courses)
+status_code=$(echo "$response" | tail -n1)
+echo "$response" | head -n -1 | jq .
+check_response $status_code 400 "POST /courses should return failure -- Course already exists"
+printf '\n'
+
+# Test to make a course
 test_status 'POST /courses should return FAILURE for student'
 response=$(curl -s -w "\n%{http_code}" -X POST \
     -H 'Content-Type: application/json' \
@@ -156,11 +174,58 @@ echo "$response" | head -n -1 | jq .
 check_response $status_code 403 "POST /courses should return FAILURE for student"
 printf '\n'
 
+# Test to update a course
+test_status 'PATCH /courses should return SUCCESS for admin'
+response=$(curl -s -w "\n%{http_code}" -X PATCH \
+    -H 'Content-Type: application/json' \
+    -H "Authorization: Bearer $ADMIN_TOKEN" \
+    -d '{
+            "subject": "CS",
+            "number": "434",
+            "title": "Machine Learning & Data Mining",
+            "term": "fa23",
+            "instructorId": 2
+        }' \
+        ${baseurl}/courses/${course_id})
+status_code=$(echo "$response" | tail -n1)
+course_id=$(echo "$response" | head -n -1 | jq -r '.id')
+echo "$response" | head -n -1 | jq .
+check_response $status_code 204 "PATCH /courses should return SUCCESS for admin"
+printf '\n'
+
+# Test to update a course
+test_status 'PATCH /courses should return FAILURE for student'
+response=$(curl -s -w "\n%{http_code}" -X PATCH \
+    -H 'Content-Type: application/json' \
+    -H "Authorization: Bearer $STUDENT_TOKEN" \
+    -d '{
+            "subject": "CS",
+            "number": "450",
+            "title": "Intro to Computer Graphics",
+            "term": "fa23",
+            "instructorId": 2
+        }' \
+        ${baseurl}/courses/2)
+status_code=$(echo "$response" | tail -n1)
+course_id=$(echo "$response" | head -n -1 | jq -r '.id')
+echo "$response" | head -n -1 | jq .
+check_response $status_code 403 "PATCH /courses should return FAILURE for student"
+printf '\n'
+
+# Test to delete a course
+test_status 'DELETE course should return FAILURE for student'
+response=$(curl -s -w "\n%{http_code}" -X DELETE \
+    -H "Authorization: Bearer $STUDENT_TOKEN" \
+    ${baseurl}/courses/1)
+status_code=$(echo "$response" | tail -n1)
+check_response $status_code 403 "DELETE course should return FAILURE for student"
+printf '\n'
+
 # Test to delete a course
 test_status 'DELETE course should return SUCCESS for admin'
 response=$(curl -s -w "\n%{http_code}" -X DELETE \
     -H "Authorization: Bearer $ADMIN_TOKEN" \
-    ${baseurl}/courses/$course_id)
+    ${baseurl}/courses/3)
 status_code=$(echo "$response" | tail -n1)
 check_response $status_code 204 "DELETE course should return SUCCESS for admin"
 printf '\n'
