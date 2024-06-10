@@ -463,6 +463,37 @@ echo "$UPLOAD_RESPONSE" | strip_last_line | jq .
 check_response $upload_status 201 "POST /assignments/:id/submissions should return SUCCESS for student"
 printf '\n'
 
+########################################
+######  Testing Rate Limiter  ######
+########################################
+
+section 'Testing Rate Limiter'
+RATE_LIMIT_ENDPOINT="/courses"
+RATE_LIMIT=100 
+
+# Test the rate limiter by exceeding the limit
+test_status "Testing rate limiter by exceeding the limit of requests"
+
+rate_limiter_test_passed=false
+
+for ((i = 1; i <= RATE_LIMIT + 1; i++)); do
+  response=$(curl -s -w "\n%{http_code}" -X GET "${baseurl}${RATE_LIMIT_ENDPOINT}")
+  status_code=$(echo "$response" | tail -n1)
+  if [ "$status_code" -eq 429 ]; then
+    rate_limiter_test_passed=true
+    echo "$response" | strip_last_line | jq .
+    break
+  fi
+done
+
+((expected_tests++))
+if [ "$rate_limiter_test_passed" = true ]; then
+  echo -e "\033[32m SUCCESS:\033[0m Rate limiter test passed"
+  ((passed_tests++))
+else
+  echo -e "\033[31m FAILURE:\033[0m Rate limiter test failed"
+fi
+
 # Print summary of test results
 echo "====================================================="
 echo "Test Results"
